@@ -3,6 +3,7 @@ import * as k8s from "@kubernetes/client-node";
 import k8sClient from "../config/kubernetes.config";
 import { PodParams } from "../types/param.type";
 import jobWatcher from "../services/jobWatcher";
+import yamlLoader from "../services/yamlLoader";
 
 const batchApi = k8sClient.getBatchApi();
 
@@ -164,6 +165,73 @@ export const createJobAndWatch = async (req: Request, res: Response) => {
         succeeded: watchResult.succeeded,
         failed: watchResult.failed,
       },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
+export const createJobFromYaml = async (req: Request, res: Response) => {
+  try {
+    const { filename, namespace = "default", variables = {} } = req.body;
+
+    if (!filename) {
+      return res.status(400).json({
+        success: false,
+        error: "filename is required",
+      });
+    }
+
+    // Load manifest with optional variable substitution
+    const jobManifest =
+      Object.keys(variables).length > 0
+        ? yamlLoader.loadManifestWithVariables<k8s.V1Job>(filename, variables)
+        : yamlLoader.loadManifest<k8s.V1Job>(filename);
+
+    console.log(`📄 Loaded YAML: ${filename}`);
+
+    const response = await batchApi.createNamespacedJob({
+      namespace,
+      body: jobManifest,
+    });
+
+    console.log(`🚀 Job ${response.metadata?.name} created from YAML`);
+
+    // Watch the job
+    const watchResult = await jobWatcher.watchJobUntilComplete(
+      namespace,
+      response.metadata?.name || "",
+    );
+
+    res.json({
+      success: watchResult.success,
+      message: watchResult.message,
+      job: {
+        name: response.metadata?.name,
+        namespace: response.metadata?.namespace,
+        status: watchResult.status,
+        succeeded: watchResult.succeeded,
+        failed: watchResult.failed,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
+export const listYamlManifests = async (req: Request, res: Response) => {
+  try {
+    const manifests = yamlLoader.listManifests();
+    res.json({
+      success: true,
+      count: manifests.length,
+      manifests,
     });
   } catch (error) {
     res.status(500).json({
