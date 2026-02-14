@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import podRoutes from "./routes/podRoutes";
 import jobRoutes from "./routes/jobRoutes";
 import configRoutes from "./routes/configMapRoutes";
+import pvcRoutes from "./routes/pvcRoutes";
 
 const app = express();
 const PORT = 3000;
@@ -15,7 +16,8 @@ app.get("/health", (req: Request, res: Response) => {
 
 app.use("/", podRoutes);
 app.use("/", jobRoutes);
-app.use("/",configRoutes);
+app.use("/", configRoutes);
+app.use("/", pvcRoutes);
 
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
@@ -23,4 +25,5 @@ app.listen(PORT, () => {
   console.log(`🐳 Pods: GET /pods`);
   console.log(`⚙️  Jobs: GET /jobs`);
   console.log(`📦 ConfigMaps: GET /configmaps`);
+  console.log(`💾 PVCs: GET /pvcs`);
 });

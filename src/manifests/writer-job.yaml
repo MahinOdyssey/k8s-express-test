@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{JOB_NAME}}-writer
+spec:
+  template:
+    spec:
+      containers:
+      - name: writer
+        image: bash:latest
+        command: 
+        - sh
+        - -c
+        - |
+          echo "Build timestamp: $(date)" > /data/build-info.txt
+          echo "Project: {{PROJECT_NAME}}" >> /data/build-info.txt
+          echo "Data written to PVC!"
+          cat /data/build-info.txt
+        volumeMounts:
+        - name: project-storage
+          mountPath: /data
+      volumes:
+      - name: project-storage
+        persistentVolumeClaim:
+          claimName: {{PVC_NAME}}
+      restartPolicy: Never
+  backoffLimit: 2

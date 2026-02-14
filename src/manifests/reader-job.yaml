@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{JOB_NAME}}-reader
+spec:
+  template:
+    spec:
+      containers:
+      - name: reader
+        image: bash:latest
+        command:
+        - sh
+        - -c
+        - |
+          echo "Reading from PVC..."
+          if [ -f /data/build-info.txt ]; then
+            cat /data/build-info.txt
+          else
+            echo "No data found!"
+          fi
+        volumeMounts:
+        - name: project-storage
+          mountPath: /data
+      volumes:
+      - name: project-storage
+        persistentVolumeClaim:
+          claimName: {{PVC_NAME}}
+      restartPolicy: Never
+  backoffLimit: 2
