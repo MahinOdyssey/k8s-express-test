@@ -25,6 +25,11 @@ class YamlLoader {
   ): T {
     try {
       const filePath = path.join(this.manifestsDir, filename);
+
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+      }
+
       let fileContent = fs.readFileSync(filePath, "utf8");
 
       // Replace variables like {{VAR_NAME}}
@@ -32,6 +37,10 @@ class YamlLoader {
         const regex = new RegExp(`{{${key}}}`, "g");
         fileContent = fileContent.replace(regex, value);
       });
+
+      console.log("📝 YAML after substitution:");
+      console.log(fileContent); 
+      console.log("---");
 
       return yaml.load(fileContent) as T;
     } catch (error) {
