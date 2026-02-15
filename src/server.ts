@@ -3,6 +3,7 @@ import podRoutes from "./routes/podRoutes";
 import jobRoutes from "./routes/jobRoutes";
 import configRoutes from "./routes/configMapRoutes";
 import pvcRoutes from "./routes/pvcRoutes";
+import workflowRoutes from "./routes/workflowRoutes";
 
 const app = express();
 const PORT = 3000;
@@ -18,6 +19,7 @@ app.use("/", podRoutes);
 app.use("/", jobRoutes);
 app.use("/", configRoutes);
 app.use("/", pvcRoutes);
+app.use("/", workflowRoutes);
 
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
@@ -26,4 +28,5 @@ app.listen(PORT, () => {
   console.log(`⚙️  Jobs: GET /jobs`);
   console.log(`📦 ConfigMaps: GET /configmaps`);
   console.log(`💾 PVCs: GET /pvcs`);
+  console.log(`🎬 Validation Workflow: POST /workflows/validation`);
 });

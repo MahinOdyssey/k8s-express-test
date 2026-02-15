@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{JOB_NAME}}
+spec:
+  template:
+    spec:
+      containers:
+      - name: builder
+        image: bash:latest
+        command:
+        - sh
+        - -c
+        - |
+          echo "Building project: $PROJECT_NAME"
+          echo "Source: $GCP_PATH"
+          echo "Build started: $(date)" > /build/build-info.txt
+          echo "Project: $PROJECT_NAME" >> /build/build-info.txt
+          sleep 3
+          echo "Build complete ✓"
+          cat /build/build-info.txt
+        envFrom:
+        - configMapRef:
+            name: {{CONFIG_MAP}}
+        volumeMounts:
+        - name: build-data
+          mountPath: /build
+      volumes:
+      - name: build-data
+        persistentVolumeClaim:
+          claimName: {{PVC_NAME}}
+      restartPolicy: Never
+  backoffLimit: 2

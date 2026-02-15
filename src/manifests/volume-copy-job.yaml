@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{JOB_NAME}}
+spec:
+  template:
+    spec:
+      containers:
+      - name: copier
+        image: bash:latest
+        command:
+        - sh
+        - -c
+        - |
+          echo "Copying data to CoreWeave PVC..."
+          echo "Reading build info:"
+          cat /build/build-info.txt
+          echo "Copy complete ✓"
+        envFrom:
+        - configMapRef:
+            name: {{CONFIG_MAP}}
+        volumeMounts:
+        - name: build-data
+          mountPath: /build
+      volumes:
+      - name: build-data
+        persistentVolumeClaim:
+          claimName: {{PVC_NAME}}
+      restartPolicy: Never
+  backoffLimit: 2
